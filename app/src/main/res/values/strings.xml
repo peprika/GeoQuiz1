@@ -14,6 +14,8 @@
 
     <!-- Questions -->
 
+    <string name="category1">Bodies of Water</string>
+
     <string name="question1">The Pacific Ocean is larger than the Atlantic Ocean.</string>
     <string name="question2">The Suez Canal connects the Red Sea and the Indian Ocean.</string>
     <string name="question3">The source of the Nile is in Egypt.</string>

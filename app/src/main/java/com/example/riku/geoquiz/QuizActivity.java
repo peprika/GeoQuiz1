@@ -1,10 +1,14 @@
 /**
  * Created by Riku Pepponen on Feb 6, 2017.
+ * Updated Feb 7, 2017
  * With the help of Big Nerd Ranch
  */
 
 package com.example.riku.geoquiz;
 
+import android.annotation.TargetApi;
+import android.app.ActionBar;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -28,8 +32,9 @@ public class QuizActivity extends AppCompatActivity {
     private int mCurrentIndex = 0; // current page
     private static final String TAG = "QuizActivity"; // for logging
     private static final String KEY_INDEX = "index";
+    public static final String KEY_PLAYER_CHEATS = "com.example.riku.geoquiz.player_cheats";
 
-    // Question bank
+    // Question bank array
     private TrueFalse[] mQuestionBank = new TrueFalse[] {
             new TrueFalse(R.string.question1, true),
             new TrueFalse(R.string.question2, false),
@@ -38,10 +43,11 @@ public class QuizActivity extends AppCompatActivity {
             new TrueFalse(R.string.question5, false),
     };
 
-    // "Update the question" function
+    // Update the question text
     private void updateQuestion(){
         int question = mQuestionBank[mCurrentIndex].getQuestion();
         mQuestionTextView.setText(question);
+
     }
 
     // Check the answer and show the appropriate toast
@@ -52,8 +58,7 @@ public class QuizActivity extends AppCompatActivity {
         if (mIsCheater) {
             if (userPressedTrue == answerIsTrue) {
                 messageResId = R.string.judgement_toast;
-                }
-            else {
+            } else {
                 messageResId = R.string.fail_toast;
             }
         } else {
@@ -63,17 +68,25 @@ public class QuizActivity extends AppCompatActivity {
                 messageResId = R.string.incorrect_toast;
             }
                 }
-        Toast.makeText(this, messageResId, Toast.LENGTH_SHORT)
-                .show();
+        Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
     }
 
+    @TargetApi(11)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreateBundle() called");
         setContentView(R.layout.activity_quiz);
 
-        // Allow the text view to behave as the Next button
+        // Action Bar (if Honeycomb or later)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            ActionBar actionBar = getActionBar();
+            if (actionBar != null) {
+                actionBar.setSubtitle(R.string.category1);
+            }
+        }
+
+        // Allow the textview to behave as the Next button
         mQuestionTextView = (TextView)findViewById(R.id.question_text_view);
         mQuestionTextView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,11 +116,11 @@ public class QuizActivity extends AppCompatActivity {
         // Next button: go to next question and reset the cheater
         mNextButton = (ImageButton)findViewById(R.id.next_button);
         mNextButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
-                        mIsCheater = false;
-                updateQuestion();
+                @Override
+                public void onClick(View v) {
+                    mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
+                    mIsCheater = false;
+                    updateQuestion();
             }
         });
 
@@ -118,10 +131,12 @@ public class QuizActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (mCurrentIndex == 0) {
                     mCurrentIndex = mQuestionBank.length - 1;
-                    updateQuestion(); }
+                    updateQuestion();
+                }
                 else {
                     mCurrentIndex = (mCurrentIndex - 1);
-                    updateQuestion(); }
+                    updateQuestion();
+                }
                 }
             });
 
@@ -139,11 +154,11 @@ public class QuizActivity extends AppCompatActivity {
             }
         });
 
-        // If the device orientation changes, get the original mCurrentIndex
+        // If the device orientation changes, retain the original mCurrentIndex
         if (savedInstanceState != null) {
             mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
-
-    }
+            mIsCheater = savedInstanceState.getBoolean(KEY_PLAYER_CHEATS, false);
+            }
         updateQuestion();
     }
 
@@ -153,8 +168,10 @@ public class QuizActivity extends AppCompatActivity {
         super.onSaveInstanceState(savedInstanceState);
         Log.i(TAG, "onSaveInstanceState");
         savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
+        savedInstanceState.putBoolean(KEY_PLAYER_CHEATS, mIsCheater);
     }
 
+    // Allows passing the cheater value from CheatActivity back to QuizActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (data == null) {
@@ -169,7 +186,6 @@ public class QuizActivity extends AppCompatActivity {
         super.onStart();
         Log.d(TAG, "onStart() called");
     }
-
     @Override
     public void onPause() {
         super.onStart();
